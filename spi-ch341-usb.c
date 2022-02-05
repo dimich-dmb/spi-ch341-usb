@@ -119,11 +119,11 @@ struct ch341_pin_config {
 struct ch341_pin_config ch341_board_config[CH341_GPIO_NUM_PINS] = 
 {
     // pin  GPIO mode           GPIO name   hwirq
-    {   15, CH341_PIN_MODE_CS , "cs0"     , 0 }, // used as CS0
-    {   16, CH341_PIN_MODE_CS , "cs1"     , 0 }, // used as CS1
-    {   17, CH341_PIN_MODE_CS , "cs2"     , 0 }, // used as CS2
-    {   19, CH341_PIN_MODE_IN , "gpio4"   , 1 }, // used as input with hardware IRQ
-    {   21, CH341_PIN_MODE_IN , "gpio5"   , 0 }  // used as input
+    {   15, CH341_PIN_MODE_CS , "CS0"     , 0 }, // used as CS0
+    {   16, CH341_PIN_MODE_CS , "CS1"     , 0 }, // used as CS1
+    {   17, CH341_PIN_MODE_CS , "CS2"     , 0 }, // used as CS2
+    {   19, CH341_PIN_MODE_IN , "D4"      , 1 }, // used as input with hardware IRQ
+    {   21, CH341_PIN_MODE_IN , "D6"      , 0 }  // used as input
 };
 
 static struct spi_board_info ch341_spi_devices[CH341_SPI_MAX_NUM_DEVICES];
