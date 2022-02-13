@@ -330,6 +330,7 @@ static int ch341_usb_transfer(struct ch341_device *ch341_dev, int out_len, int i
         return actual;
 
     memset(ch341_dev->in_buf, 0, sizeof(ch341_dev->in_buf));
+
     retval = usb_bulk_msg(ch341_dev->usb_dev,
                           usb_rcvbulkpipe(ch341_dev->usb_dev,
                                           usb_endpoint_num(ch341_dev->ep_in)),
