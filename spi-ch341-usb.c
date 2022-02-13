@@ -350,8 +350,6 @@ static int ch341_usb_transfer(struct ch341_device *ch341_dev, int out_len, int i
 
 // ----- spi layer begin -------------------------------------------------
 
-static struct mutex ch341_lock;
-
 #define ch341_spi_maser_to_dev(m) *((struct ch341_device**)spi_master_get_devdata(m))
 
 static int ch341_spi_read_inputs (struct ch341_device* ch341_dev)
