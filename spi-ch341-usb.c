@@ -183,10 +183,6 @@ struct ch341_device
 
 static uint poll_period = CH341_POLL_PERIOD_MS;       // module parameter poll period
 
-// ----- function prototypes ---------------------------------------------
-
-static int ch341_usb_transfer (struct ch341_device *dev, int out_len, int in_len);
-
 // ----- board configuration layer begin ---------------------------------
 
 static int ch341_cfg_probe (struct ch341_device* ch341_dev)
@@ -315,9 +311,41 @@ static void ch341_cfg_remove (struct ch341_device* ch341_dev)
 
 // ----- board configuration layer end -----------------------------------
 
-// ----- spi layer begin -------------------------------------------------
+static int ch341_usb_transfer(struct ch341_device *ch341_dev, int out_len, int in_len)
+{
+    int retval;
+    int actual;
+
+    // DEV_DBG (CH341_IF_ADDR, "bulk_out %d bytes, bulk_in %d bytes",
+    //          out_len, (in_len == 0) ? 0 : CH341_USB_MAX_BULK_SIZE);
+
+    retval = usb_bulk_msg(ch341_dev->usb_dev,
+                          usb_sndbulkpipe(ch341_dev->usb_dev,
+                                          usb_endpoint_num(ch341_dev->ep_out)),
+                          ch341_dev->out_buf, out_len,
+                          &actual, 2000);
+    if (retval < 0)
+        return retval;
+
+    if (in_len == 0)
+        return actual;
+
+    memset(ch341_dev->in_buf, 0, sizeof(ch341_dev->in_buf));
+    retval = usb_bulk_msg(ch341_dev->usb_dev,
+                          usb_rcvbulkpipe(ch341_dev->usb_dev,
+                                          usb_endpoint_num(ch341_dev->ep_in)),
+                          ch341_dev->in_buf, CH341_USB_MAX_BULK_SIZE,
+                          &actual, 2000);
+
+    if (retval < 0)
+        return retval;
+
+    return actual;
+}
 
 static struct mutex ch341_lock;
+
+// ----- spi layer begin -------------------------------------------------
 
 #define ch341_spi_maser_to_dev(m) *((struct ch341_device**)spi_master_get_devdata(m))
 
@@ -1154,38 +1182,6 @@ static const struct usb_device_id ch341_usb_table[] = {
 };
 
 MODULE_DEVICE_TABLE(usb, ch341_usb_table);
-
-static int ch341_usb_transfer(struct ch341_device *ch341_dev, int out_len, int in_len)
-{
-    int retval;
-    int actual;
-
-    // DEV_DBG (CH341_IF_ADDR, "bulk_out %d bytes, bulk_in %d bytes", 
-    //          out_len, (in_len == 0) ? 0 : CH341_USB_MAX_BULK_SIZE);
-
-    retval = usb_bulk_msg(ch341_dev->usb_dev, 
-                          usb_sndbulkpipe(ch341_dev->usb_dev,
-                                          usb_endpoint_num(ch341_dev->ep_out)),
-                          ch341_dev->out_buf, out_len, 
-                          &actual, 2000);
-    if (retval < 0)
-        return retval;
-
-    if (in_len == 0)
-        return actual;
-
-    memset(ch341_dev->in_buf, 0, sizeof(ch341_dev->in_buf));
-    retval = usb_bulk_msg(ch341_dev->usb_dev, 
-                          usb_rcvbulkpipe(ch341_dev->usb_dev, 
-                                          usb_endpoint_num(ch341_dev->ep_in)),
-                          ch341_dev->in_buf, CH341_USB_MAX_BULK_SIZE, 
-                          &actual, 2000);
-
-    if (retval < 0)
-        return retval;
-
-    return actual;
-}
 
 static void ch341_usb_complete_intr_urb (struct urb *urb)
 {
