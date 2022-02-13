@@ -1057,7 +1057,7 @@ int ch341_gpio_set_direction (struct gpio_chip *chip, unsigned offset, bool inpu
         return -EINVAL;
     }
 
-    DEV_INFO (CH341_IF_ADDR, "gpio=%d direction=%s", offset, input ? "input" :  "output");
+    DEV_DBG (CH341_IF_ADDR, "gpio=%d direction=%s", offset, input ? "input" :  "output");
 
     ch341_dev->gpio_pins[offset]->mode = input ? CH341_PIN_MODE_IN : CH341_PIN_MODE_OUT;
 
