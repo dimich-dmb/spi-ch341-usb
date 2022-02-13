@@ -77,7 +77,6 @@
 
 #define CH341_SPI_MAX_NUM_DEVICES   3
 #define CH341_SPI_BUS_NUM           0
-#define CH341_SPI_MODALIAS          "spidev"
 #define CH341_SPI_MODE              SPI_MODE_0
 #define CH341_SPI_MIN_FREQ          400
 #define CH341_SPI_MAX_FREQ          1e6
