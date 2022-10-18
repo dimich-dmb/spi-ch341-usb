@@ -395,9 +395,13 @@ static void ch341_spi_update_io_data(struct ch341_device *ch341_dev)
 static void ch341_spi_set_cs(struct spi_device *spi, bool active)
 {
     struct ch341_device *ch341_dev = ch341_spi_maser_to_dev(spi->master);
+    bool pull_down = active;
 
     if (spi->mode & SPI_NO_CS)
         return;
+
+    if (spi->mode & SPI_CS_HIGH)
+        pull_down = !pull_down;
 
     if (spi->chip_select > CH341_SPI_MAX_NUM_DEVICES)
     {
@@ -405,7 +409,7 @@ static void ch341_spi_set_cs(struct spi_device *spi, bool active)
                  spi->chip_select, CH341_SPI_MAX_NUM_DEVICES-1);
     }
 
-    if (active)
+    if (pull_down)
         ch341_dev->gpio_io_data &= ~(1 << spi->chip_select);
     else
         ch341_dev->gpio_io_data |= (1 << spi->chip_select);
@@ -677,7 +681,7 @@ static int ch341_spi_probe (struct ch341_device* ch341_dev)
     // set SPI master configuration
     ch341_dev->master->bus_num = -1;
     ch341_dev->master->num_chipselect = CH341_SPI_MAX_NUM_DEVICES;
-    ch341_dev->master->mode_bits = SPI_MODE_3 | SPI_LSB_FIRST | SPI_NO_CS;
+    ch341_dev->master->mode_bits = SPI_MODE_3 | SPI_LSB_FIRST | SPI_NO_CS | SPI_CS_HIGH;
     ch341_dev->master->flags = SPI_MASTER_MUST_RX | SPI_MASTER_MUST_TX;
     #if LINUX_VERSION_CODE <= KERNEL_VERSION(5,0,0)
     ch341_dev->master->bits_per_word_mask = SPI_BIT_MASK(8);
