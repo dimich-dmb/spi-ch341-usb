@@ -47,7 +47,7 @@ endif
 	
 uninstall:
 ifneq ($(MODULE_INSTALLED),)
-	dkms remove -m $(MODULE_NAME) -v $(MODULE_VERSION) -k $(KVERSION) --all
+	dkms remove -m $(MODULE_NAME) -v $(MODULE_VERSION) --all
 	rm -rf /usr/src/$(MODULE_NAME)-$(MODULE_VERSION)
 endif
 
