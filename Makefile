@@ -8,7 +8,7 @@ KERNEL_DIR  = /lib/modules/$(KVERSION)/build
 MODULE_DIR  = /lib/modules/$(KVERSION)
 
 ifneq ($(DKMS),)
-MODULE_INSTALLED := $(shell dkms status $(MODULE_NAME))
+MODULE_INSTALLED := $(shell dkms status $(MODULE_NAME) -k $(KVERSION))
 else
 MODULE_INSTALLED =
 endif
@@ -43,11 +43,11 @@ ifneq ($(MODULE_INSTALLED),)
 	@echo Module $(MODULE_NAME) is installed ... uninstall it first
 	@make uninstall
 endif
-	@dkms install .
+	@dkms install . -k $(KVERSION)
 	
 uninstall:
 ifneq ($(MODULE_INSTALLED),)
-	dkms remove -m $(MODULE_NAME) -v $(MODULE_VERSION) --all
+	dkms remove -m $(MODULE_NAME) -v $(MODULE_VERSION) -k $(KVERSION) --all
 	rm -rf /usr/src/$(MODULE_NAME)-$(MODULE_VERSION)
 endif
 
