@@ -31,9 +31,11 @@ ifeq ($(DKMS),)  # if DKMS is not installed
 install: $(MODULE_NAME).ko
 	cp $(MODULE_NAME).ko $(MODULE_DIR)/kernel/drivers/spi
 	depmod
+	install -m 0644 udev/99-$(MODULE_NAME).rules /lib/udev/rules.d/
 	
 uninstall:
 	rm -f $(MODULE_DIR)/kernel/drivers/spi/$(MODULE_NAME).ko
+	$(RM) /lib/udev/rules.d/99-$(MODULE_NAME).rules
 	depmod
 
 else  # if DKMS is installed
@@ -44,12 +46,14 @@ ifneq ($(MODULE_INSTALLED),)
 	@make uninstall
 endif
 	@dkms install . -k $(KVERSION)
+	install -m 0644 udev/99-$(MODULE_NAME).rules /lib/udev/rules.d/
 	
 uninstall:
 ifneq ($(MODULE_INSTALLED),)
 	dkms remove -m $(MODULE_NAME) -v $(MODULE_VERSION) --all
 	rm -rf /usr/src/$(MODULE_NAME)-$(MODULE_VERSION)
 endif
+	$(RM) /lib/udev/rules.d.99-$(MODULE_NAME).rules
 
 endif  # ifeq ($(DKMS),)
 
