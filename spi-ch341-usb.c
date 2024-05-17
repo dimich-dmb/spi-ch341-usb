@@ -157,7 +157,7 @@ struct ch341_device
     struct urb* intr_urb;
 
     // SPI device description
-    struct spi_master*  master;   // spi master
+    struct spi_controller*  master;   // spi master
     struct spi_device*  slaves[CH341_SPI_MAX_NUM_DEVICES];
     int                 slave_num;
     bool                last_cpol; // last message CPOL
@@ -323,7 +323,7 @@ static void ch341_cfg_remove (struct ch341_device* ch341_dev)
 
 // ----- spi layer begin -------------------------------------------------
 
-#define ch341_spi_maser_to_dev(m) *((struct ch341_device**)spi_master_get_devdata(m))
+#define ch341_spi_controller_to_dev(m) *((struct ch341_device**)spi_controller_get_devdata(m))
 
 static int ch341_spi_read_inputs (struct ch341_device* ch341_dev)
 {
@@ -391,7 +391,7 @@ static void ch341_spi_update_io_data(struct ch341_device *ch341_dev)
 
 static void ch341_spi_set_cs(struct spi_device *spi, bool active)
 {
-    struct ch341_device *ch341_dev = ch341_spi_maser_to_dev(spi->master);
+    struct ch341_device *ch341_dev = ch341_spi_controller_to_dev(spi->controller);
     uint8_t chipselect;
 
     if (spi->mode & SPI_NO_CS)
@@ -573,7 +573,7 @@ static int ch341_spi_transfer_one(struct ch341_device* ch341_dev,
 static int ch341_spi_transfer_one_message(struct spi_controller *ctlr,
                                           struct spi_message *msg)
 {
-    struct ch341_device* ch341_dev = ch341_spi_maser_to_dev(ctlr);
+    struct ch341_device* ch341_dev = ch341_spi_controller_to_dev(ctlr);
     struct spi_transfer *xfer;
     bool keep_cs = false;
     bool cpol = msg->spi->mode & SPI_CPOL;
@@ -638,7 +638,7 @@ out:
 
 static int ch341_spi_setup(struct spi_device *spi)
 {
-    struct ch341_device* ch341_dev = ch341_spi_maser_to_dev(spi->controller);
+    struct ch341_device* ch341_dev = ch341_spi_controller_to_dev(spi->controller);
     uint8_t cs_mask = (1 << spi_get_chipselect(spi, 0));
 
     mutex_lock(&ch341_dev->mtx);
@@ -662,7 +662,7 @@ static int ch341_spi_probe (struct ch341_device* ch341_dev)
 
     DEV_DBG (CH341_IF_ADDR, "start");
 
-    // allocate a new SPI master with a pointer to ch341_device as device data
+    // allocate a new SPI controller with a pointer to ch341_device as device data
     ch341_dev->master = spi_alloc_master(CH341_IF_ADDR, sizeof(struct ch341_device*));
     if (!ch341_dev->master)
     {
@@ -671,7 +671,7 @@ static int ch341_spi_probe (struct ch341_device* ch341_dev)
     }
 
     // save the pointer to ch341_dev in the SPI master device data field
-    ch341_spi_maser_to_dev (ch341_dev->master) = ch341_dev;
+    ch341_spi_controller_to_dev(ch341_dev->master) = ch341_dev;
 
     // set SPI master configuration
     ch341_dev->master->bus_num = -1;
@@ -685,10 +685,10 @@ static int ch341_spi_probe (struct ch341_device* ch341_dev)
     ch341_dev->master->min_speed_hz = CH341_SPI_MIN_FREQ;
 
     // register the new master
-    if ((result = spi_register_master (ch341_dev->master)))
+    if ((result = spi_register_controller(ch341_dev->master)))
     {
         DEV_ERR(CH341_IF_ADDR, "could not register SPI master");
-        spi_master_put(ch341_dev->master);
+        spi_controller_put(ch341_dev->master);
         // in case of error, reset the master to avoid crash during free
         ch341_dev->master = 0;
         return result;
@@ -728,7 +728,7 @@ static void ch341_spi_remove (struct ch341_device* ch341_dev)
             spi_unregister_device (ch341_dev->slaves[i]);
 
     if (ch341_dev->master)
-        spi_unregister_master (ch341_dev->master);
+        spi_unregister_controller(ch341_dev->master);
 
     return;
 }
