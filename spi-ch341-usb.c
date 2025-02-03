@@ -663,7 +663,7 @@ static int ch341_spi_probe (struct ch341_device* ch341_dev)
     DEV_DBG (CH341_IF_ADDR, "start");
 
     // allocate a new SPI controller with a pointer to ch341_device as device data
-    ch341_dev->master = spi_alloc_master(CH341_IF_ADDR, sizeof(struct ch341_device*));
+    ch341_dev->master = spi_alloc_host(CH341_IF_ADDR, sizeof(struct ch341_device*));
     if (!ch341_dev->master)
     {
         DEV_ERR (CH341_IF_ADDR, "SPI master allocation failed");
